@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'firebase_options.dart';
+import 'providers/auth_provider.dart' show authStateProvider;
+import 'screens/auth/login_screen.dart' show LoginScreen;
 
 
 void main() async {
@@ -19,47 +21,28 @@ void main() async {
  );
 }
 
-class App extends StatelessWidget {
+class App extends HookConsumerWidget {
   const App({
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
     return MaterialApp(
       theme: ThemeData(brightness: Brightness.dark),
       darkTheme: ThemeData(brightness: Brightness.dark),
       themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
       debugShowMaterialGrid: false,
-      home: const HomePage(),
+      home: authState.when(
+        data: (user) {
+          if (user == null) return const LoginScreen();
+          return const Scaffold(body: Center(child: Text("Logged In!")));
+        },
+        loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+        error: (err, stack) => Scaffold(body: Center(child: Text("Error: $err"))),
+      ),
     );
   }
-}
-
-class HomePage extends HookConsumerWidget {
- const HomePage({super.key});
-
- @override
- Widget build(BuildContext context, WidgetRef ref) {
-  final controller = useTextEditingController(text: "Hooks are working!");
-  return Scaffold(
-   appBar: AppBar(
-    title: const Text('Home Page'),
-   ),
-   body: Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text('System Status: Online'),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: TextField(controller: controller),
-        ),
-      ],
-    ),
-   ),
-  );
- }
 }
