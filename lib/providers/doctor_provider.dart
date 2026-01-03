@@ -10,3 +10,8 @@ final pendingAppointmentsProvider = StreamProvider<QuerySnapshot>((ref) {
   final service = ref.watch(doctorServiceProvider);
   return service.getPendingAppointments();
 });
+
+final approvedQueueProvider = StreamProvider<QuerySnapshot>((ref) {
+  final service = ref.watch(doctorServiceProvider);
+  return service.getApprovedQueue();
+});

@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart'; 
-import '../../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
 
 class BookAppointmentScreen extends HookConsumerWidget {
   const BookAppointmentScreen({super.key});
@@ -44,8 +44,8 @@ class BookAppointmentScreen extends HookConsumerWidget {
 
       isLoading.value = true;
       try {
-        final user = ref.read(authServiceProvider).currentUser;
-        if (user == null) throw AppException("User not found");
+        final userProfile = ref.read(currentUserProfileProvider).value;
+        if (userProfile == null) throw AppException("User not found");
 
         final DateTime fullDateTime = DateTime(
           selectedDate.value!.year,
@@ -56,12 +56,14 @@ class BookAppointmentScreen extends HookConsumerWidget {
         );
 
         await FirebaseFirestore.instance.collection('appointments').add({
-          'studentId': user.uid,
-          'studentName': user.displayName ?? "Unknown Student",
+          'studentId': userProfile.uid,
+          'studentName': userProfile.name,
           'doctorName': 'Triage Doctor',
           'date': Timestamp.fromDate(fullDateTime),
           'reason': reasonController.text.trim(),
           'status': 'pending',
+          'hostel': userProfile.hostel, 
+          'roomNumber': userProfile.roomNumber,
           'created_at': FieldValue.serverTimestamp(),
           'token_number': -1, 
         });
