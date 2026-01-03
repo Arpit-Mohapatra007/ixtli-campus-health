@@ -47,7 +47,7 @@ class ChatScreen extends HookConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.mark_chat_unread_outlined, size: 60, color: Colors.teal.withOpacity(0.3)),
+                        Icon(Icons.mark_chat_unread_outlined, size: 60, color: Colors.teal),
                         const SizedBox(height: 10),
                         Text("Start a conversation with $otherUserName", style: const TextStyle(color: Colors.grey)),
                       ],
@@ -78,7 +78,7 @@ class ChatScreen extends HookConsumerWidget {
                             bottomRight: isMe ? Radius.zero : const Radius.circular(16),
                           ),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))
+                            BoxShadow(color: Colors.black, blurRadius: 5, offset: const Offset(0, 2))
                           ],
                         ),
                         child: Text(
