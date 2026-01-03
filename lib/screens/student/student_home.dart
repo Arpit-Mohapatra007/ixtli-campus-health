@@ -1,3 +1,4 @@
+import 'package:campus_health/widgets/live_queue_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,12 +19,18 @@ class StudentHome extends ConsumerWidget {
           )
         ],
       ),
-      body: Center(
-        child: ElevatedButton(
-            onPressed: () => context.push('/student/book'), // <--- MAGIC HAPPENS HERE
-            child: const Text("Book Appointment"),
-          ),
-        ),
+      body: Column(
+        children: [
+          const LiveQueueCard(),
+          const SizedBox(height: 20),
+          Center(
+            child: ElevatedButton(
+                onPressed: () => context.push('/student/book'), 
+                child: const Text("Book Appointment"),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

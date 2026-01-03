@@ -1,3 +1,4 @@
+import 'package:campus_health/services/appointment_service.dart' show appointmentServiceProvider;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -79,11 +80,10 @@ class DoctorHome extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           ElevatedButton(
-                            onPressed: () {
-                              ref.read(doctorServiceProvider).updateStatus(doc.id, 'approved');
+                            onPressed: () async {
+                              await ref.read(appointmentServiceProvider).admitPatient(doc.id);
                             },
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                            child: const Text('Admit'),
+                            child: const Text("Admit"),
                           ),
                         ],
                       )
