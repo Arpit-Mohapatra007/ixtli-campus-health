@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../screens/auth/login_screen.dart';
-import '../screens/student/student_home.dart';
-import '../screens/doctor/doctor_home.dart';
-import '../screens/driver/driver_home.dart';
+import '../screens/auth/login_screen.dart' show LoginScreen;
+import '../screens/doctor/doctor_home.dart' show DoctorHome;
+import '../screens/driver/driver_home.dart' show DriverHome;
+import '../screens/student/book_appointment_screen.dart' show BookAppointmentScreen;
+import '../screens/student/student_home.dart' show StudentHome;
 import 'auth_provider.dart';
 import 'user_provider.dart';
 
@@ -39,6 +40,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      ),
+      GoRoute(
+        path: '/student/book', 
+        builder: (context, state) => const BookAppointmentScreen()
       ),
     ],
 

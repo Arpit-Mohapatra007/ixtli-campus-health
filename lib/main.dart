@@ -3,12 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'firebase_options.dart';
 import 'providers/router_provider.dart' show routerProvider;
-import 'providers/user_provider.dart' show currentUserProfileProvider;
-import 'screens/auth/login_screen.dart' show LoginScreen;
-import 'screens/doctor/doctor_home.dart' show DoctorHome;
-import 'screens/driver/driver_home.dart' show DriverHome;
-import 'screens/student/student_home.dart' show StudentHome;
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

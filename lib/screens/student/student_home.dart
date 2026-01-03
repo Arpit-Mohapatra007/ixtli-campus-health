@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../providers/auth_provider.dart';
 
@@ -17,7 +18,12 @@ class StudentHome extends ConsumerWidget {
           )
         ],
       ),
-      body: const Center(child: Text("Welcome Student!")),
+      body: Center(
+        child: ElevatedButton(
+            onPressed: () => context.push('/student/book'), // <--- MAGIC HAPPENS HERE
+            child: const Text("Book Appointment"),
+          ),
+        ),
     );
   }
 }
