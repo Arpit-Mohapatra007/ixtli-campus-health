@@ -7,6 +7,8 @@ import '../../providers/user_provider.dart';
 import '../../providers/sos_provider.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/live_queue_card.dart';
+import 'nearby_hospitals_screen.dart';
+import 'authorities_contact_screen.dart';
 
 class StudentHome extends HookConsumerWidget {
   const StudentHome({super.key});
@@ -26,6 +28,7 @@ class StudentHome extends HookConsumerWidget {
           }
           return null;
         }, []); 
+
         Future<void> triggerSOS() async {
           if (user == null) return;
           try {
@@ -69,6 +72,16 @@ class StudentHome extends HookConsumerWidget {
                   leading: const Icon(Icons.calendar_month, color: Colors.teal),
                   title: const Text("Book Appointment"),
                   onTap: () => context.push('/student/bookAppointment'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.local_hospital, color: Colors.red),
+                  title: const Text("Nearby Hospitals"),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NearbyHospitalsScreen())),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.phone_in_talk, color: Colors.orange),
+                  title: const Text("Emergency Contacts"),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthoritiesContactScreen())),
                 ),
                 ListTile(
                   leading: const Icon(Icons.chat, color: Colors.blue),

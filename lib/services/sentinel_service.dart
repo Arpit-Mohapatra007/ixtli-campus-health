@@ -5,7 +5,7 @@ class SentinelService {
   final _roomRegex = RegExp(r"^([A-Z0-9]+)([1-4])(\d{2})$");
 
   Stream<List<String>> getOutbreakMessages() {
-    final yesterday = DateTime.now().subtract(const Duration(hours: 24));
+    final yesterday = DateTime.now().subtract(const Duration(hours: 48));
     
     return _db.collection('prescriptions')
         .where('timestamp', isGreaterThan: Timestamp.fromDate(yesterday))

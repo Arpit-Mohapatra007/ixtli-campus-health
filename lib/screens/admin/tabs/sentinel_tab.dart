@@ -84,7 +84,7 @@ class SentinelTab extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text("Real-Time Outbreak Analysis", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const Text("Based on prescriptions from the last 24 hours", style: TextStyle(color: Colors.grey)),
+            const Text("Based on prescriptions from the last 48 hours", style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 15),
             
             Expanded(

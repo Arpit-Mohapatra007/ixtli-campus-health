@@ -1,141 +1,123 @@
-import 'package:campus_health/utils/app_exception.dart' show AppException;
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart'; 
-import '../../providers/user_provider.dart';
+import 'package:table_calendar/table_calendar.dart';
+import '../../services/content_service.dart';
 
-class BookAppointmentScreen extends HookConsumerWidget {
+class BookAppointmentScreen extends ConsumerWidget {
   const BookAppointmentScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    
-    final reasonController = useTextEditingController();
-    final selectedDate = useState<DateTime?>(null);
-    final selectedTime = useState<TimeOfDay?>(null);
-    final isLoading = useState(false);
-
-    Future<void> pickDate() async {
-      final date = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.now(),
-        lastDate: DateTime.now().add(const Duration(days: 7)),
-      );
-      if (date != null) selectedDate.value = date;
-    }
-
-    Future<void> pickTime() async {
-      final time = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
-      if (time != null) selectedTime.value = time;
-    }
-
-    Future<void> submitBooking() async {
-      if (selectedDate.value == null || selectedTime.value == null || reasonController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
-        return;
-      }
-
-      isLoading.value = true;
-      try {
-        final userProfile = ref.read(currentUserProfileProvider).value;
-        if (userProfile == null) throw AppException("User not found");
-
-        final DateTime fullDateTime = DateTime(
-          selectedDate.value!.year,
-          selectedDate.value!.month,
-          selectedDate.value!.day,
-          selectedTime.value!.hour,
-          selectedTime.value!.minute,
-        );
-
-        await FirebaseFirestore.instance.collection('appointments').add({
-          'studentId': userProfile.uid,
-          'studentName': userProfile.name,
-          'doctorName': 'Triage Doctor',
-          'date': Timestamp.fromDate(fullDateTime),
-          'reason': reasonController.text.trim(),
-          'status': 'pending',
-          'hostel': userProfile.hostel, 
-          'roomNumber': userProfile.roomNumber,
-          'created_at': FieldValue.serverTimestamp(),
-          'token_number': -1, 
-        });
-
-        if (context.mounted) {
-          context.pop(); 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Appointment Requested Successfully!"), backgroundColor: Colors.green)
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red));
-        }
-      } finally {
-        isLoading.value = false;
-      }
-    }
+    final scheduleAsync = ref.watch(specialistScheduleProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text("Book Appointment")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: "Reason for visit (e.g., High Fever)",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.medical_services),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 20),
-            
-            ListTile(
-              title: Text(selectedDate.value == null 
-                  ? "Select Date" 
-                  : DateFormat('yyyy-MM-dd').format(selectedDate.value!)),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: pickDate,
-              tileColor: Colors.grey[800], 
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            const SizedBox(height: 10),
-
-            ListTile(
-              title: Text(selectedTime.value == null 
-                  ? "Select Time" 
-                  : selectedTime.value!.format(context)),
-              trailing: const Icon(Icons.access_time),
-              onTap: pickTime,
-               tileColor: Colors.grey[800],
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            const SizedBox(height: 30),
-
-            isLoading.value 
-            ? const CircularProgressIndicator()
-            : SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: submitBooking,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                  child: const Text("Confirm Booking", style: TextStyle(color: Colors.white, fontSize: 16)),
-                ),
-              )
-          ],
-        ),
+      body: scheduleAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text("Error: $e")),
+        data: (scheduleList) {
+          return _CalendarBody(scheduleList: scheduleList);
+        }
       ),
+    );
+  }
+}
+
+class _CalendarBody extends StatefulWidget {
+  final List<Map<String, dynamic>> scheduleList;
+  const _CalendarBody({required this.scheduleList});
+
+  @override
+  State<_CalendarBody> createState() => _CalendarBodyState();
+}
+
+class _CalendarBodyState extends State<_CalendarBody> {
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+
+  List<String> _getEventsForDay(DateTime day) {
+    final cleanDay = DateTime(day.year, day.month, day.day);
+    
+    final events = widget.scheduleList.where((item) {
+      final itemDate = item['date'] as DateTime;
+      final cleanItemDate = DateTime(itemDate.year, itemDate.month, itemDate.day);
+      return cleanItemDate == cleanDay;
+    }).map((e) => e['specialist'] as String).toList();
+    
+    return events;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TableCalendar(
+          firstDay: DateTime.now().subtract(const Duration(days: 365)),
+          lastDay: DateTime.now().add(const Duration(days: 365)),
+          focusedDay: _focusedDay,
+          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+          onDaySelected: (selectedDay, focusedDay) {
+            setState(() {
+              _selectedDay = selectedDay;
+              _focusedDay = focusedDay;
+            });
+          },
+          eventLoader: _getEventsForDay,
+          calendarStyle: const CalendarStyle(
+            markerDecoration: BoxDecoration(color: Colors.pink, shape: BoxShape.circle),
+            todayDecoration: BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
+            selectedDecoration: BoxDecoration(color: Colors.teal, shape: BoxShape.circle),
+          ),
+          headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+        ),
+        const SizedBox(height: 20),
+        
+        if (_selectedDay != null) ...[
+             Container(
+               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+               decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(20)),
+               child: Text("Selected: ${_selectedDay.toString().split(' ')[0]}", style: const TextStyle(fontWeight: FontWeight.bold)),
+             ),
+             const SizedBox(height: 10),
+             
+             if (_getEventsForDay(_selectedDay!).isNotEmpty)
+               Container(
+                 padding: const EdgeInsets.all(12),
+                 margin: const EdgeInsets.symmetric(horizontal: 20),
+                 decoration: BoxDecoration(
+                   color: Colors.pink[50], 
+                   borderRadius: BorderRadius.circular(10), 
+                   border: Border.all(color: Colors.pink)
+                 ),
+                 child: Row(
+                   children: [
+                     const Icon(Icons.star, color: Colors.pink),
+                     const SizedBox(width: 10),
+                     Text("Visiting: ${_getEventsForDay(_selectedDay!).join(', ')}", style: const TextStyle(color: Colors.pink, fontWeight: FontWeight.bold)),
+                   ],
+                 ),
+               )
+             else
+               const Padding(
+                 padding: EdgeInsets.all(8.0),
+                 child: Text("No Specialist Scheduled. Regular OPD only.", style: TextStyle(color: Colors.grey)),
+               ),
+        ],
+
+        const Spacer(),
+        ElevatedButton(
+          onPressed: () {
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Proceeding to booking...")));
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+            backgroundColor: Colors.teal,
+            foregroundColor: Colors.white
+          ),
+          child: const Text("Confirm Appointment"),
+        ),
+        const SizedBox(height: 30),
+      ],
     );
   }
 }
