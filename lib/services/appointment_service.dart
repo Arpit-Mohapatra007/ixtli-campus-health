@@ -17,6 +17,35 @@ final myActiveAppointmentProvider = StreamProvider<DocumentSnapshot?>((ref) {
 class AppointmentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<void> requestAppointment({
+    required String studentId,
+    required String studentName,
+    required String reason,
+    required String hostel,
+    required DateTime date,
+  }) async {
+    final existing = await _firestore
+        .collection('appointments')
+        .where('studentId', isEqualTo: studentId)
+        .where('status', whereIn: ['pending', 'approved'])
+        .get();
+
+    if (existing.docs.isNotEmpty) {
+      throw Exception("You already have an active appointment.");
+    }
+
+    await _firestore.collection('appointments').add({
+      'studentId': studentId,
+      'studentName': studentName,
+      'reason': reason,
+      'hostel': hostel,
+      'date': Timestamp.fromDate(date),
+      'status': 'pending',
+      'timestamp': FieldValue.serverTimestamp(),
+      'token_number': null,
+    });
+  }
+
   Future<void> admitPatient(String appointmentId) async {
     final now = DateTime.now();
     final todayStr = "${now.year}-${now.month}-${now.day}"; 
@@ -58,9 +87,8 @@ class AppointmentService {
     return _firestore
         .collection('appointments')
         .where('status', isEqualTo: 'approved')
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-        .orderBy('date')
-        .orderBy('token_number')
+        .where('admitted_at', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .orderBy('admitted_at')
         .limit(1)
         .snapshots()
         .map((snapshot) {

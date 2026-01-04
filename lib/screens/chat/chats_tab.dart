@@ -42,13 +42,23 @@ class ChatsTab extends ConsumerWidget {
             final otherName = isMeDoctor ? chat.studentName : chat.doctorName;
             
             String timeStr = "";
-             timeStr = DateFormat('h:mm a').format(chat.lastMessageTime.toDate());
+            timeStr = DateFormat('h:mm a').format(chat.lastMessageTime.toDate());
                     
             return Card(
               elevation: 2,
               margin: const EdgeInsets.symmetric(vertical: 6),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ListTile(
+                onTap: () {
+                  final basePath = userRole == 'student' ? '/student' : '/doctor';
+                  context.push(
+                    '$basePath/chat', 
+                    extra: {
+                      'chatId': chat.id,
+                      'otherUserName': otherName,
+                    },
+                  );
+                },
                 leading: CircleAvatar(
                   backgroundColor: Colors.teal.shade100,
                   child: Text(
@@ -63,18 +73,33 @@ class ChatsTab extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.grey),
                 ),
-                trailing: Text(timeStr, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                onTap: () {
-                  final basePath = userRole == 'student' ? '/student' : '/doctor';
-                  
-                  context.push(
-                    '$basePath/chat', 
-                    extra: {
-                      'chatId': chat.id,
-                      'otherUserName': otherName,
-                    },
-                  );
-                },
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(timeStr, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Delete Chat?"),
+                            content: const Text("This conversation will be removed."),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancel")),
+                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Delete", style: TextStyle(color: Colors.red))),
+                            ],
+                          )
+                        );
+                        
+                        if (confirm == true) {
+                          await ref.read(chatServiceProvider).deleteChat(chat.id);
+                        }
+                      },
+                    )
+                  ],
+                ),
               ),
             );
           },

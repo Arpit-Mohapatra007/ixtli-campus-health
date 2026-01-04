@@ -71,4 +71,8 @@ class ChatService {
             .map((doc) => ChatRoomModel.fromMap(doc.data(), doc.id))
             .toList());
   }
+
+  Future<void> deleteChat(String chatId) async {
+    await _db.collection('chats').doc(chatId).delete();
+  }
 }
