@@ -41,7 +41,7 @@ dependencies:
   hooks_riverpod: ^2.5.1       
   flutter_riverpod: ^2.5.1
 
-  # Location & Maps (For SOS & Heatmap)
+  # Location & Maps
   geolocator: ^11.0.0
   google_maps_flutter: ^2.6.0
 
