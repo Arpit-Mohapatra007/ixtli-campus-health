@@ -9,6 +9,49 @@ class InventoryTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final inventoryAsync = ref.watch(inventoryProvider);
 
+    void showRestockDialog(BuildContext context, String medId, String medName) {
+      final controller = TextEditingController(); 
+      
+      showDialog(
+        context: context, 
+        builder: (ctx) => AlertDialog(
+          title: Text("Restock $medName"),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: "Quantity to Add",
+              hintText: "e.g. 50",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx), 
+              child: const Text("Cancel")
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final amount = int.tryParse(controller.text);
+                if (amount != null && amount > 0) {
+                  await ref.read(pharmacyServiceProvider).restockMedicine(medId, amount);
+                  if (ctx.mounted) {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Added $amount units to $medName"), backgroundColor: Colors.green)
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white), 
+              child: const Text("Confirm"),
+            )
+          ],
+        )
+      );
+    }
+
     return Container(
       color: Colors.white,
       child: inventoryAsync.when(
@@ -34,21 +77,25 @@ class InventoryTab extends ConsumerWidget {
                     child: Icon(Icons.local_pharmacy, color: isLow ? Colors.red : Colors.green),
                   ),
                   title: Text(med['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${med['type']}"),
+                  subtitle: Text("${med['type']} • Stock: $stock"),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (isLow)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          margin: const EdgeInsets.only(right: 10),
                           decoration: BoxDecoration(
                             color: Colors.red,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text("LOW STOCK", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                          child: const Text("LOW", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                         ),
-                      const SizedBox(width: 10),
-                      Text("$stock", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isLow ? Colors.red : Colors.black)),
+                      IconButton.filled(
+                        icon: const Icon(Icons.add),
+                        style: IconButton.styleFrom(backgroundColor: Colors.blueGrey),
+                        onPressed: () => showRestockDialog(context, med['id'], med['name']),
+                      ),
                     ],
                   ),
                 ),

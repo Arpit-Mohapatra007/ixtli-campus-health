@@ -6,13 +6,28 @@ class PharmacyService {
 
   Stream<List<Map<String, dynamic>>> getInventory() {
     return _db.collection('inventory')
-        .where('stock', isGreaterThan: 0)
-        .orderBy('stock') 
+        .orderBy('stock')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => {
               ...doc.data(),
               'id': doc.id,
             }).toList());
+  }
+
+  Future<void> restockMedicine(String medId, int amountToAdd) async {
+    if (amountToAdd <= 0) return;
+
+    final docRef = _db.collection('inventory').doc(medId);
+    
+    await _db.runTransaction((transaction) async {
+      final snapshot = await transaction.get(docRef);
+      if (!snapshot.exists) return;
+
+      final currentStock = (snapshot.data() as Map<String, dynamic>)['stock'] as int;
+      final newStock = currentStock + amountToAdd;
+
+      transaction.update(docRef, {'stock': newStock});
+    });
   }
 
   Future<void> submitPrescription({
