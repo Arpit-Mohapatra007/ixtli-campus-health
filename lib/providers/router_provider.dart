@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../screens/admin/admin_home.dart' show AdminHome;
 import '../screens/auth/login_screen.dart' show LoginScreen;
 import '../screens/chat/chat_screen.dart' show ChatScreen;
 import '../screens/doctor/consultation_screen.dart' show ConsultationScreen;
@@ -70,6 +71,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      ),
+      GoRoute(
+        path: '/admin',
+        builder: (context, state) => const AdminHome(),
       ),
     ],
 

@@ -62,6 +62,8 @@ class ConsultationScreen extends HookConsumerWidget {
           doctorId: currentUser!.uid,
           diagnosis: diagnosisController.text,
           medicines: selectedMeds.value,
+          hostel: appointmentData['hostel'] ?? 'Unknown',
+          roomNumber: appointmentData['roomNumber'] ?? 'Unknown',
         );
         
         if (context.mounted) {

@@ -22,6 +22,8 @@ class PharmacyService {
     required String doctorId,
     required String diagnosis,
     required List<Map<String, dynamic>> medicines,
+    required String hostel,
+    required String roomNumber,
   }) async {
     return _db.runTransaction((transaction) async {
       final presRef = _db.collection('prescriptions').doc();
@@ -53,9 +55,11 @@ class PharmacyService {
         'studentId': studentId,
         'studentName': studentName,
         'doctorId': doctorId,
-        'diagnosis': diagnosis,
+        'diagnosis': diagnosis.trim(),
         'medicines': medicines,
         'timestamp': FieldValue.serverTimestamp(),
+        'hostel': hostel,
+        'roomNumber': roomNumber,
       });
 
       for (var med in medicines) {
