@@ -81,7 +81,7 @@ class MedicalHistoryScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 5),
-                      Text("Dr. ${record['doctorName'] ?? 'Unknown'}", style: const TextStyle(fontWeight: FontWeight.w500)),
+                      Text("${record['doctorName'] ?? 'Unknown'}", style: const TextStyle(fontWeight: FontWeight.w500)),
                       const Divider(height: 20),
 
                       const Text("Prescribed Medicines:", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
