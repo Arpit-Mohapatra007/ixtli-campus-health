@@ -45,7 +45,7 @@ class PendingRequestsTab extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 4),
-                          Text("Symptoms: ${data['reason'] ?? 'None'}", style: const TextStyle(color: Color.fromARGB(221, 241, 249, 3))),
+                          Text("Symptoms: ${data['reason'] ?? 'None'}"),
                           const SizedBox(height: 4),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

@@ -28,9 +28,9 @@ class App extends HookConsumerWidget {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Campus Health',
-      theme: ThemeData(brightness: Brightness.dark),
+      theme: ThemeData(brightness: Brightness.light),
       darkTheme: ThemeData(brightness: Brightness.dark),
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
       debugShowMaterialGrid: false,
       routerConfig: router,

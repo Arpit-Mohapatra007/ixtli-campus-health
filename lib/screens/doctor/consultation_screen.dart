@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../providers/pharmacy_provider.dart';
 import '../../providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class ConsultationScreen extends HookConsumerWidget {
   final Map<String, dynamic> appointmentData;
@@ -18,9 +18,11 @@ class ConsultationScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diagnosisController = useTextEditingController();
+    final menuController = useTextEditingController(); 
+    
     final selectedMeds = useState<List<Map<String, dynamic>>>([]);
     final selectedMedId = useState<String?>(null);
-
+    
     final inventoryAsync = ref.watch(inventoryProvider);
     final currentUser = ref.watch(authServiceProvider).currentUser;
 
@@ -41,6 +43,9 @@ class ConsultationScreen extends HookConsumerWidget {
         'qty': 1,
         'type': med['type']
       }];
+
+      selectedMedId.value = null; 
+      menuController.clear();     
     }
 
     Future<void> finishConsultation() async {
@@ -60,7 +65,7 @@ class ConsultationScreen extends HookConsumerWidget {
         );
         
         if (context.mounted) {
-          context.pop();
+          context.pop(); 
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Prescription Sent! Appointment Completed.")));
         }
       } catch (e) {
@@ -118,45 +123,63 @@ class ConsultationScreen extends HookConsumerWidget {
               error: (e, _) => Text("Error loading inventory: $e"),
               data: (inventory) {
                 return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start, 
                   children: [
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey.shade400),
-                        ),
-                        child: DropdownButtonFormField<String>(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return DropdownMenu<String>(
+                            width: constraints.maxWidth,
+                            controller: menuController,
+                            enableFilter: true, 
+                            requestFocusOnTap: true, 
+                            hintText: "Select Medicine",
+                            
+                            filterCallback: (entries, filter) {
+                              final query = filter.toLowerCase();
+                              if (query.isEmpty) return entries;
+                              return entries.where((entry) {
+                                return entry.label.toLowerCase().startsWith(query);
+                              }).toList();
+                            },
 
-                          key: ValueKey(selectedMedId.value), 
-                          initialValue: selectedMedId.value,
+                            dropdownMenuEntries: inventory.map<DropdownMenuEntry<String>>((med) {
+                              return DropdownMenuEntry<String>(
+                                value: med['id'] as String,
+                                label: "${med['name']} (${med['stock']} left)",
+                              );
+                            }).toList(),
 
-                          decoration: const InputDecoration(border: InputBorder.none),
-                          hint: const Text("Select Medicine"),
-                          items: inventory.map((med) {
-                            return DropdownMenuItem(
-                              value: med['id'] as String,
-                              child: Text(
-                                "${med['name']} (${med['stock']} left)", 
-                                overflow: TextOverflow.ellipsis
+                            onSelected: (String? id) {
+                              selectedMedId.value = id;
+                            },
+
+                            inputDecorationTheme: InputDecorationTheme(
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(color: Colors.grey.shade400),
                               ),
-                            );
-                          }).toList(),
-                          onChanged: (val) => selectedMedId.value = val,
-                        ),
+                            ),
+                          );
+                        }
                       ),
                     ),
                     const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: () => addMedicine(inventory),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal, 
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15)
+                    SizedBox(
+                      height: 56, 
+                      child: ElevatedButton(
+                        onPressed: () => addMedicine(inventory),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal, 
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(horizontal: 20)
+                        ),
+                        child: const Text("Add"),
                       ),
-                      child: const Text("Add"),
                     ),
                   ],
                 );
