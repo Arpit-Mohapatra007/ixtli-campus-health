@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../screens/auth/login_screen.dart' show LoginScreen;
+import '../screens/chat/chat_screen.dart' show ChatScreen;
 import '../screens/doctor/consultation_screen.dart' show ConsultationScreen;
 import '../screens/doctor/doctor_home.dart' show DoctorHome;
 import '../screens/driver/driver_home.dart' show DriverHome;
@@ -47,6 +48,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               return ConsultationScreen(
                 appointmentId: map['appointmentId'],
                 appointmentData: map['appointmentData'],
+              );
+            },
+          ),
+          GoRoute(
+            path: 'chat',
+            builder: (context, state) {
+              final map = state.extra as Map<String, dynamic>;
+              return ChatScreen(
+                chatId: map['chatId'],
+                otherUserName: map['otherUserName'],
               );
             },
           ),

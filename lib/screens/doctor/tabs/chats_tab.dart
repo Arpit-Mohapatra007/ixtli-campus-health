@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/chat_provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../chat/chat_screen.dart';
 
 class ChatsTab extends ConsumerWidget {
   const ChatsTab({super.key});
@@ -55,11 +55,12 @@ class ChatsTab extends ConsumerWidget {
               ),
               trailing: Text(timeStr, style: const TextStyle(color: Colors.grey, fontSize: 12)),
               onTap: () {
-                Navigator.push(
-                  context, 
-                  MaterialPageRoute(
-                    builder: (_) => ChatScreen(chatId: chat.id, otherUserName: otherName)
-                  )
+                context.push(
+                  '/doctor/chat', 
+                  extra: {
+                    'chatId': chat.id,
+                    'otherUserName': otherName,
+                  },
                 );
               },
             );

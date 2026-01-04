@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../providers/doctor_provider.dart';
 import '../../../providers/chat_provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../chat/chat_screen.dart';
 
 class PendingRequestsTab extends ConsumerWidget {
   const PendingRequestsTab({super.key});
@@ -71,9 +71,13 @@ class PendingRequestsTab extends ConsumerWidget {
                           );
 
                           if (context.mounted) {
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => ChatScreen(chatId: chatId, otherUserName: data['studentName'])
-                            ));
+                            context.push(
+                              '/doctor/chat',
+                              extra: {
+                                'chatId': chatId,
+                                'otherUserName': data['studentName'],
+                              },
+                            );
                           }
                         },
                       ),
