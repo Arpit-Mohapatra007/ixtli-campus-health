@@ -10,7 +10,8 @@ class UserModel {
   final String bloodGroup;
   final String emergencyContact;
   final DateTime? dob;
-  final String? specialization; 
+  final String? specialization;
+  final String? fcmToken; 
 
   UserModel({
     required this.uid,
@@ -23,6 +24,7 @@ class UserModel {
     this.emergencyContact = '',
     this.dob,
     this.specialization,
+    this.fcmToken, 
   });
 
   String get age {
@@ -46,7 +48,8 @@ class UserModel {
       bloodGroup: map['bloodGroup'] ?? 'Unknown',
       emergencyContact: map['emergencyContact'] ?? '',
       dob: map['dob'] != null ? (map['dob'] as Timestamp).toDate() : null,
-      specialization: map['specialization'], 
+      specialization: map['specialization'],
+      fcmToken: map['fcmToken'], 
     );
   }
 
@@ -60,7 +63,8 @@ class UserModel {
       'bloodGroup': bloodGroup,
       'emergencyContact': emergencyContact,
       'dob': dob != null ? Timestamp.fromDate(dob!) : null,
-      'specialization': specialization, 
+      'specialization': specialization,
+      'fcmToken': fcmToken,
     };
   }
 }

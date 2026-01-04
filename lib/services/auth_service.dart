@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../utils/app_exception.dart';
+import 'notification_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -44,11 +45,16 @@ class AuthService {
     );
 
     await _db.collection('users').doc(newUser.uid).set(newUser.toMap());
+
+    await NotificationService().uploadFcmToken();
   }
 
   Future<void> signIn(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
+
+      await NotificationService().uploadFcmToken();
+      
     } catch (e) {
       throw AppException.from(e); 
     }
