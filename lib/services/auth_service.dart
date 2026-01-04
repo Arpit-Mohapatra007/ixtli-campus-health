@@ -49,6 +49,14 @@ class AuthService {
     await NotificationService().uploadFcmToken();
   }
 
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw AppException.from(e);
+    }
+  }
+
   Future<void> signIn(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);

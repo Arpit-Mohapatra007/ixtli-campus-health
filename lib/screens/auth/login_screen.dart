@@ -13,7 +13,60 @@ class LoginScreen extends HookConsumerWidget {
     
     final isLogin = useState(true); 
     final isLoading = useState(false);
-   
+
+    void showForgotPasswordDialog() {
+      final resetEmailCtrl = TextEditingController();
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Reset Password"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Enter your email to receive a password reset link."),
+              const SizedBox(height: 10),
+              TextField(
+                controller: resetEmailCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Email Address",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (resetEmailCtrl.text.isNotEmpty) {
+                  try {
+                    await ref.read(authServiceProvider).sendPasswordResetEmail(resetEmailCtrl.text.trim());
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Reset link sent! Check your email.")),
+                      );
+                    }
+                  } catch (e) {
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Error: $e")),
+                      );
+                    }
+                  }
+                }
+              },
+              child: const Text("Send Link"),
+            ),
+          ],
+        ),
+      );
+    }
+
     Future<void> handleSubmit() async {
       isLoading.value = true;
       try {
@@ -34,7 +87,7 @@ class LoginScreen extends HookConsumerWidget {
         if (context.mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(e.toString()), // "Incorrect password."
+              content: Text(e.toString()), 
               backgroundColor: Colors.red
             )
           );
@@ -71,7 +124,15 @@ class LoginScreen extends HookConsumerWidget {
                 obscureText: true
               ),
               const SizedBox(height: 25),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: showForgotPasswordDialog,
+                  child: const Text("Forgot Password?"),
+                ),
+              ),
               
+              const SizedBox(height: 20),
               isLoading.value 
                 ? const CircularProgressIndicator()
                 : SizedBox(

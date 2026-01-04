@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -19,7 +20,12 @@ void main() async {
   );
   
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-await NotificationService().init();
+    await NotificationService().init();
+
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true, 
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
 
   runApp(
     const ProviderScope(
