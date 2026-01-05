@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/appointment_service.dart';
+import '../providers/appointment_provider.dart' show currentServingProvider, myActiveAppointmentProvider;
 
 class LiveQueueCard extends ConsumerWidget {
   const LiveQueueCard({super.key});

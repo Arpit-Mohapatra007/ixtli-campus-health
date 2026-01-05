@@ -3,8 +3,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/content_service.dart';
-import '../../services/appointment_service.dart';
+import '../../providers/appointment_provider.dart' show appointmentServiceProvider;
+import '../../providers/content_provider.dart' show specialistScheduleProvider;
 import '../../providers/user_provider.dart';
 
 class BookAppointmentScreen extends ConsumerWidget {

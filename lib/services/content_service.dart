@@ -1,11 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-final contentServiceProvider = Provider<ContentService>((ref) => ContentService());
-
-final hospitalsProvider = StreamProvider((ref) => ref.watch(contentServiceProvider).getHospitals());
-final contactsProvider = StreamProvider((ref) => ref.watch(contentServiceProvider).getContacts());
-final specialistScheduleProvider = StreamProvider((ref) => ref.watch(contentServiceProvider).getSpecialistSchedule());
 
 class ContentService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;

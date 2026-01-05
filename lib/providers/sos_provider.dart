@@ -5,11 +5,11 @@ import '../providers/auth_provider.dart';
 
 final sosServiceProvider = Provider<SosService>((ref) => SosService());
 
-final activeEmergenciesProvider = StreamProvider<QuerySnapshot>((ref) {
+final activeEmergenciesProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
   return ref.watch(sosServiceProvider).getActiveEmergencies();
 });
 
-final myEmergencyStatusProvider = StreamProvider<DocumentSnapshot?>((ref) {
+final myEmergencyStatusProvider = StreamProvider.autoDispose<DocumentSnapshot?>((ref) {
   final user = ref.watch(authServiceProvider).currentUser;
   if (user == null) return const Stream.empty();
   

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart'; 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -19,12 +20,16 @@ class DriverHome extends HookConsumerWidget {
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => Scaffold(body: Center(child: Text("Error: $e"))),
       data: (user) {
-        
         useEffect(() {
+          List<StreamSubscription> subs = [];
           if (user != null) {
-            NotificationService().listenForLocalAlerts(user);
+            subs = NotificationService().listenForLocalAlerts(user);
           }
-          return null;
+          return () {
+            for (var sub in subs) {
+              sub.cancel();
+            }
+          };
         }, []);
 
         return Scaffold(

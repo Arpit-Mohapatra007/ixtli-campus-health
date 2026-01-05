@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -24,10 +25,15 @@ class StudentHome extends HookConsumerWidget {
       error: (e, _) => Scaffold(body: Center(child: Text("Error: $e"))),
       data: (user) {
         useEffect(() {
+          List<StreamSubscription> subs = [];
           if (user != null) {
-            NotificationService().listenForLocalAlerts(user);
+            subs = NotificationService().listenForLocalAlerts(user);
           }
-          return null;
+          return () {
+            for (var sub in subs) {
+              sub.cancel();
+            }
+          };
         }, []); 
 
         Future<void> triggerSOS() async {

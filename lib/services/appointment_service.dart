@@ -1,18 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
-
-final appointmentServiceProvider = Provider((ref) => AppointmentService());
-
-final currentServingProvider = StreamProvider<int>((ref) {
-  final service = ref.watch(appointmentServiceProvider);
-  return service.watchCurrentServing();
-});
-
-final myActiveAppointmentProvider = StreamProvider<DocumentSnapshot?>((ref) {
-  final service = ref.watch(appointmentServiceProvider);
-  return service.watchActiveAppointment();
-});
 
 class AppointmentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

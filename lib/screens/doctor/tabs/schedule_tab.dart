@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../services/content_service.dart';
+import '../../../providers/content_provider.dart';
 import '../../../providers/user_provider.dart';
 
 class ScheduleTab extends ConsumerWidget {

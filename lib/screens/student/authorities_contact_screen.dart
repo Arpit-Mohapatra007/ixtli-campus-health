@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../services/content_service.dart';
+import '../../providers/content_provider.dart' show contactsProvider;
 
 class AuthoritiesContactScreen extends ConsumerWidget {
   const AuthoritiesContactScreen({super.key});

@@ -5,11 +5,11 @@ import '../services/chat_service.dart';
 
 final chatServiceProvider = Provider<ChatService>((ref) => ChatService());
 
-final chatMessagesProvider = StreamProvider.family<List<MessageModel>, String>((ref, chatId) {
+final chatMessagesProvider = StreamProvider.autoDispose.family<List<MessageModel>, String>((ref, chatId) {
   return ref.watch(chatServiceProvider).getMessages(chatId);
 });
 
-final myChatsProvider = StreamProvider<List<ChatRoomModel>>((ref) {
+final myChatsProvider = StreamProvider.autoDispose<List<ChatRoomModel>>((ref) {
   final user = ref.watch(authStateProvider).value; 
   if (user == null) return const Stream.empty();
   

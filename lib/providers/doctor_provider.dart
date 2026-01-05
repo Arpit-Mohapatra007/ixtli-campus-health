@@ -6,16 +6,16 @@ final doctorServiceProvider = Provider<DoctorService>((ref) {
   return DoctorService();
 });
 
-final pendingAppointmentsProvider = StreamProvider<QuerySnapshot>((ref) {
+final pendingAppointmentsProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
   final service = ref.watch(doctorServiceProvider);
   return service.getPendingAppointments();
 });
 
-final approvedQueueProvider = StreamProvider<QuerySnapshot>((ref) {
+final approvedQueueProvider = StreamProvider.autoDispose<QuerySnapshot>((ref) {
   final service = ref.watch(doctorServiceProvider);
   return service.getApprovedQueue();
 });
 
-final allDoctorsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+final allDoctorsProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
   return ref.watch(doctorServiceProvider).getAllDoctors();
 });

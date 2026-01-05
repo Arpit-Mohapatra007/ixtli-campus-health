@@ -4,7 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../models/user_model.dart';
 import 'auth_provider.dart';
 
-final currentUserProfileProvider = StreamProvider<UserModel?>((ref) {
+final currentUserProfileProvider = StreamProvider.autoDispose<UserModel?>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return authState.when(

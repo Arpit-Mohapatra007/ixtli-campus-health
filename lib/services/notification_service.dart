@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:campus_health/utils/app_exception.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -65,17 +66,21 @@ class NotificationService {
     }
   }
 
-  void listenForLocalAlerts(UserModel user) {
+  List<StreamSubscription> listenForLocalAlerts(UserModel user) {
+    List<StreamSubscription> subs = [];
+    
     if (user.role == 'driver') {
-      _listenToSOS();
+      subs.add(_listenToSOS());
     } else if (user.role == 'student') {
-      _listenToAppointments(user.uid);
-      _listenToBroadcasts(user);
+      subs.add(_listenToAppointments(user.uid));
+      subs.add(_listenToBroadcasts(user));
     }
+    
+    return subs;
   }
 
-  void _listenToSOS() {
-    _db.collection('emergencies')
+  StreamSubscription _listenToSOS() {
+    return _db.collection('emergencies')
         .where('status', isEqualTo: 'pending')
         .snapshots()
         .listen((snapshot) {
@@ -93,8 +98,8 @@ class NotificationService {
     });
   }
 
-  void _listenToAppointments(String studentId) {
-    _db.collection('appointments')
+  StreamSubscription _listenToAppointments(String studentId) {
+    return _db.collection('appointments')
         .where('studentId', isEqualTo: studentId)
         .snapshots()
         .listen((snapshot) {
@@ -114,7 +119,7 @@ class NotificationService {
     });
   }
 
-  void _listenToBroadcasts(UserModel user) {
+  StreamSubscription _listenToBroadcasts(UserModel user) {
     String? myWing;
     String? myFloor;
     final roomRegex = RegExp(r"^([A-Z0-9]+)([1-4])(\d{2})$");
@@ -124,7 +129,7 @@ class NotificationService {
       myFloor = match.group(2);
     }
 
-    _db.collection('broadcasts')
+    return _db.collection('broadcasts')
         .where('targetHostel', isEqualTo: user.hostel)
         .limit(1)
         .snapshots()
