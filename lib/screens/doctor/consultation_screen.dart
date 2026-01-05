@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../providers/pharmacy_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
@@ -27,6 +28,21 @@ class ConsultationScreen extends HookConsumerWidget {
     final inventoryAsync = ref.watch(inventoryProvider);
     final currentUser = ref.watch(authServiceProvider).currentUser;
     final doctorProfile = ref.watch(currentUserProfileProvider).value;
+
+    String age = "N/A";
+    if (appointmentData['dob'] != null) {
+      try {
+        final dob = (appointmentData['dob'] as Timestamp).toDate();
+        final now = DateTime.now();
+        int a = now.year - dob.year;
+        if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+          a--;
+        }
+        age = a.toString();
+      } catch (_) {
+        age = "N/A";
+      }
+    }
 
     void addMedicine(List<Map<String, dynamic>> inventory) {
       if (selectedMedId.value == null) return;
@@ -75,7 +91,7 @@ class ConsultationScreen extends HookConsumerWidget {
         );
         
         if (context.mounted) {
-          context.pop(); 
+          context.pop(true); 
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Prescription Sent! Appointment Completed.")));
         }
       } catch (e) {
@@ -83,6 +99,23 @@ class ConsultationScreen extends HookConsumerWidget {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
         }
       }
+    }
+
+    Widget infoBadge(IconData icon, String text) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: Colors.black54),
+            const SizedBox(width: 4),
+            Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+          ],
+        ),
+      );
     }
 
     return Scaffold(
@@ -101,13 +134,38 @@ class ConsultationScreen extends HookConsumerWidget {
               elevation: 2,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               color: Colors.white,
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.teal[50],
-                  child: const Icon(Icons.person, color: Colors.teal),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.teal[50],
+                      child: const Icon(Icons.person, color: Colors.teal, size: 30),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(appointmentData['studentName'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                          const SizedBox(height: 5),
+                          Text("Token: #${appointmentData['token_number']}", style: const TextStyle(color: Colors.grey)),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 4.0,
+                            children: [
+                              infoBadge(Icons.hotel, appointmentData['hostel'] ?? 'N/A'),
+                              infoBadge(Icons.bloodtype, appointmentData['bloodGroup'] ?? 'N/A'),
+                              infoBadge(Icons.cake, "$age yrs"),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                title: Text(appointmentData['studentName'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text("Hostel: ${appointmentData['hostel'] ?? 'N/A'} • Token: #${appointmentData['token_number']}"),
               ),
             ),
             const SizedBox(height: 20),

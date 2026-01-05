@@ -93,7 +93,7 @@ class DriverHome extends HookConsumerWidget {
                           const Divider(),
                           Text("Student: ${data['studentName']}", style: const TextStyle(fontSize: 16)),
                           Text("Room: ${data['roomNumber']}", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                          Text("Blood Group: ${data['bloodGroup']}"),
+                          Text("Blood Group: ${data['bloodGroup']}  •  Age: ${data['age'] ?? 'N/A'}"),       
                           const SizedBox(height: 10),
                           
                           Row(

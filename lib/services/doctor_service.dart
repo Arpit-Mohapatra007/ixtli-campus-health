@@ -13,7 +13,6 @@ class DoctorService {
 
   Stream<QuerySnapshot> getApprovedQueue() {
     final now = DateTime.now();
-
     final startOfDay = DateTime.utc(now.year, now.month, now.day);
 
     return _db.collection('appointments')
@@ -26,14 +25,11 @@ class DoctorService {
 
   Future<void> admitStudent(String docId) async {
     final docRef = _db.collection('appointments').doc(docId);
-
     final docSnap = await docRef.get();
     if (!docSnap.exists) return;
     
     final data = docSnap.data()!;
-    final Timestamp dateTs = data['date'];
-    final DateTime date = dateTs.toDate();
-
+    final DateTime date = (data['date'] as Timestamp).toDate();
     final dateStr = "${date.year}-${date.month}-${date.day}";
     final counterRef = _db.collection('clinic_counters').doc('daily_counter_$dateStr');
 
@@ -62,6 +58,12 @@ class DoctorService {
   Future<void> callPatient(String docId) async {
     await _db.collection('appointments').doc(docId).update({
       'status': 'treating',
+    });
+  }
+
+  Future<void> undoTreatment(String docId) async {
+    await _db.collection('appointments').doc(docId).update({
+      'status': 'approved',
     });
   }
   

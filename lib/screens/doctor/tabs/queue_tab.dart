@@ -80,7 +80,6 @@ class LiveQueueTab extends ConsumerWidget {
                   final data = doc.data() as Map<String, dynamic>;
                   final token = data['token_number'] ?? '?';
                   final name = data['studentName'] ?? 'Unknown';
-                  
                   final isFirstOfToday = isToday && appointments.first.id == doc.id;
 
                   return Card(
@@ -127,25 +126,20 @@ class LiveQueueTab extends ConsumerWidget {
                               );
 
                               if (context.mounted) {
-                                context.push(
-                                  '/doctor/chat',
-                                  extra: {
-                                    'chatId': chatId,
-                                    'otherUserName': data['studentName'],
-                                  },
-                                );
+                                context.push('/doctor/chat', extra: {
+                                  'chatId': chatId,
+                                  'otherUserName': data['studentName'],
+                                });
                               }
                             },
                           ),
-                          
                           const SizedBox(width: 8),
-
-                         ElevatedButton.icon(
+                          ElevatedButton.icon(
                             onPressed: () async {
                               await ref.read(doctorServiceProvider).callPatient(doc.id);
                               
                               if (context.mounted) {
-                                context.push(
+                                final result = await context.push(
                                   '/doctor/consultation', 
                                   extra: {
                                     'appointmentId': doc.id,
@@ -153,13 +147,13 @@ class LiveQueueTab extends ConsumerWidget {
                                   },
                                 );
                                 
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Opening Consultation..."), duration: Duration(milliseconds: 500))
-                                );
+                                if (result == null) {
+                                  await ref.read(doctorServiceProvider).undoTreatment(doc.id);
+                                }
                               }
                             },
-                            icon: const Icon(Icons.medical_services, size: 18),
-                            label: const Text("Treat"),
+                            icon: const Icon(Icons.medical_services, size: 18), 
+                            label: const Text("Treat"), 
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isFirstOfToday ? Colors.teal : Colors.grey,
                               foregroundColor: Colors.white,

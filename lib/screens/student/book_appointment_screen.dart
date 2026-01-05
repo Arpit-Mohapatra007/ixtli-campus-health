@@ -88,6 +88,8 @@ class _CalendarBodyState extends ConsumerState<_CalendarBody> {
           reason: reasonController.text.trim(),
           date: _selectedDay!,
           category: _selectedCategory,
+          bloodGroup: user.bloodGroup,
+          dob: user.dob,
         );
         
         if (context.mounted) {

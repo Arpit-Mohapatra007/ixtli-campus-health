@@ -45,6 +45,7 @@ class StudentHome extends HookConsumerWidget {
               room: user.roomNumber,
               contact: user.emergencyContact,
               bloodGroup: user.bloodGroup,
+              age: user.age,
             );
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(

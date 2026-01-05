@@ -11,6 +11,7 @@ class SosService {
     required String room,
     required String contact,
     required String bloodGroup,
+    required String age,
   }) async {
     final existing = await _db.collection('emergencies')
         .where('studentId', isEqualTo: studentId)
@@ -28,6 +29,7 @@ class SosService {
       'roomNumber': room,
       'contact': contact,
       'bloodGroup': bloodGroup,
+      'age': age,
       'status': 'pending', 
       'timestamp': FieldValue.serverTimestamp(),
     });

@@ -11,6 +11,8 @@ class AppointmentService {
     required String hostel,
     required DateTime date,
     required String category,
+    required String bloodGroup,
+    required DateTime? dob,     
   }) async {
     final existing = await _firestore
         .collection('appointments')
@@ -30,6 +32,8 @@ class AppointmentService {
       'category': category,
       'date': Timestamp.fromDate(date),
       'status': 'pending',
+      'bloodGroup': bloodGroup,
+      'dob': dob != null ? Timestamp.fromDate(dob) : null, 
       'timestamp': FieldValue.serverTimestamp(),
       'token_number': null,
     });
@@ -77,7 +81,6 @@ class AppointmentService {
 
   Stream<int> watchCurrentServing() {
     final now = DateTime.now();
-
     final startOfDay = DateTime.utc(now.year, now.month, now.day);
     final endOfDay = DateTime.utc(now.year, now.month, now.day, 23, 59, 59);
 
