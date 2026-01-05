@@ -45,7 +45,9 @@ class _ManageHospitals extends ConsumerWidget {
       final docCtrl = TextEditingController();
       final phoneCtrl = TextEditingController();
       final distCtrl = TextEditingController();
-      final linkCtrl = TextEditingController(); 
+      final linkCtrl = TextEditingController();
+      final latCtrl = TextEditingController(); 
+      final lngCtrl = TextEditingController(); 
 
       showDialog(
         context: context,
@@ -58,12 +60,24 @@ class _ManageHospitals extends ConsumerWidget {
                 TextField(controller: docCtrl, decoration: const InputDecoration(labelText: "Doctor Name")),
                 TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: "Phone Number")),
                 TextField(controller: distCtrl, decoration: const InputDecoration(labelText: "Distance (e.g. 2.5 km)")),
+                
+                const SizedBox(height: 10),
+                const Text("Map Coordinates (Right-click on Google Maps)", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    Expanded(child: TextField(controller: latCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Latitude (e.g. 21.2)"))),
+                    const SizedBox(width: 10),
+                    Expanded(child: TextField(controller: lngCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Longitude (e.g. 81.3)"))),
+                  ],
+                ),
+                
+                const SizedBox(height: 10),
                 TextField(
                   controller: linkCtrl, 
                   decoration: const InputDecoration(
-                    labelText: "Google Maps Link", 
-                    hintText: "Paste full link here (https://maps...)",
-                    helperText: "Go to Google Maps > Share > Copy Link"
+                    labelText: "Navigation Link", 
+                    hintText: "https://maps.google.com/...",
+                    suffixIcon: Icon(Icons.link)
                   )
                 ),
               ],
@@ -74,12 +88,17 @@ class _ManageHospitals extends ConsumerWidget {
             ElevatedButton(
               onPressed: () {
                 if (nameCtrl.text.isNotEmpty) {
+                  double? lat = double.tryParse(latCtrl.text);
+                  double? lng = double.tryParse(lngCtrl.text);
+
                   ref.read(contentServiceProvider).addHospital({
                     'name': nameCtrl.text,
                     'doctor': docCtrl.text,
                     'phone': phoneCtrl.text,
                     'distance': distCtrl.text,
                     'mapLink': linkCtrl.text,
+                    'lat': lat, 
+                    'lng': lng, 
                   });
                   Navigator.pop(ctx);
                 }
@@ -107,7 +126,7 @@ class _ManageHospitals extends ConsumerWidget {
               final item = list[i];
               return ListTile(
                 title: Text(item['name']),
-                subtitle: Text("${item['distance']} • ${item['mapLink'] != null ? 'Has Map Link' : 'No Link'}"),
+                subtitle: Text("${item['distance']} • ${item['lat'] != null ? 'Map Ready' : 'No Coords'}"),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () => ref.read(contentServiceProvider).deleteHospital(item['id']),

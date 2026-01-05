@@ -1,3 +1,4 @@
+import 'package:campus_health/utils/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -13,12 +14,8 @@ class AIChatScreen extends HookConsumerWidget {
     final controller = useTextEditingController();
     final isLoading = useState(false);
     final scrollController = useScrollController();
-
     final detectedSpecialist = useState<String?>(null);
-    final specialists = [
-      "General Physician", "Cardiologist", "Dermatologist", 
-      "Neurologist", "Orthopedic", "Dentist", "Psychiatrist", "ENT Specialist"
-    ];
+    final specialists = AppConstants.specialists;
 
     void scrollToBottom() {
       if (scrollController.hasClients) {

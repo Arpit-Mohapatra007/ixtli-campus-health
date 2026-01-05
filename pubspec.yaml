@@ -41,7 +41,8 @@ dependencies:
   hooks_riverpod: ^2.5.1       
 
   # Maps
-  google_maps_flutter: ^2.6.0
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
 
   # Utilities
   url_launcher: ^6.2.5         # To make calls
@@ -60,6 +61,7 @@ dependencies:
   table_calendar: ^3.2.0
   # Gemini AI
   flutter_gemini: ^3.0.0
+  
 
 
 dev_dependencies:

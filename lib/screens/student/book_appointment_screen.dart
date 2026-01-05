@@ -1,3 +1,4 @@
+import 'package:campus_health/utils/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -60,7 +61,7 @@ class _CalendarBodyState extends ConsumerState<_CalendarBody> {
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.initialCategory ?? "General Physician";
+    _selectedCategory = widget.initialCategory ?? AppConstants.generalPhysician;
   }
 
   List<String> _getEventsForDay(DateTime day) {
@@ -136,8 +137,8 @@ class _CalendarBodyState extends ConsumerState<_CalendarBody> {
               setState(() {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
-                if (!specialists.contains(_selectedCategory) && _selectedCategory != "General Physician") {
-                   _selectedCategory = "General Physician";
+                if (!specialists.contains(_selectedCategory) && _selectedCategory != AppConstants.generalPhysician) {
+                   _selectedCategory = AppConstants.generalPhysician;
                 }
               });
             },
@@ -178,18 +179,18 @@ class _CalendarBodyState extends ConsumerState<_CalendarBody> {
                          width: double.infinity,
                          height: 50,
                          child: ElevatedButton.icon(
-                           onPressed: () => setState(() => _selectedCategory = "General Physician"),
+                           onPressed: () => setState(() => _selectedCategory = AppConstants.generalPhysician),
                            icon: Icon(Icons.medical_services_outlined, 
-                             color: _selectedCategory == "General Physician" ? Colors.white : Colors.teal
+                             color: _selectedCategory == AppConstants.generalPhysician ? Colors.white : Colors.teal
                            ),
                            label: const Text("General Physician (OPD)"),
                            style: ElevatedButton.styleFrom(
-                             backgroundColor: _selectedCategory == "General Physician" ? Colors.teal : Colors.grey[100],
-                             foregroundColor: _selectedCategory == "General Physician" ? Colors.white : Colors.black87,
-                             elevation: _selectedCategory == "General Physician" ? 4 : 0,
+                             backgroundColor: _selectedCategory == AppConstants.generalPhysician ? Colors.teal : Colors.grey[100],
+                             foregroundColor: _selectedCategory == AppConstants.generalPhysician ? Colors.white : Colors.black87,
+                             elevation: _selectedCategory == AppConstants.generalPhysician ? 4 : 0,
                              shape: RoundedRectangleBorder(
                                borderRadius: BorderRadius.circular(12),
-                               side: _selectedCategory == "General Physician" 
+                               side: _selectedCategory == AppConstants.generalPhysician 
                                   ? BorderSide.none 
                                   : const BorderSide(color: Colors.teal, width: 1.5)
                              )
@@ -271,7 +272,7 @@ class _CalendarBodyState extends ConsumerState<_CalendarBody> {
               onPressed: handleBooking,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                backgroundColor: _selectedCategory == "General Physician" ? Colors.teal : Colors.pink,
+                backgroundColor: _selectedCategory == AppConstants.generalPhysician ? Colors.teal : Colors.pink,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))
               ),

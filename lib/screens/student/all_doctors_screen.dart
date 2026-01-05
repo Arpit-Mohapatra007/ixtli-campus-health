@@ -1,3 +1,4 @@
+import 'package:campus_health/utils/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -53,7 +54,7 @@ class AllDoctorsScreen extends ConsumerWidget {
 
           final Map<String, List<Map<String, dynamic>>> groupedDoctors = {};
           for (var doc in doctors) {
-            final spec = doc['specialization'] ?? 'General Physician';
+            final spec = doc['specialization'] ?? AppConstants.generalPhysician;
             if (!groupedDoctors.containsKey(spec)) {
               groupedDoctors[spec] = [];
             }

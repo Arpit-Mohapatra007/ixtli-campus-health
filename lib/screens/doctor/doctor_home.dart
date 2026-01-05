@@ -1,3 +1,4 @@
+import 'package:campus_health/utils/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../providers/auth_provider.dart';
@@ -20,7 +21,7 @@ class DoctorHome extends ConsumerWidget {
       data: (user) {
         final isSpecialist = user?.specialization != null && 
                              user!.specialization!.isNotEmpty && 
-                             user.specialization != 'General Physician';
+                             user.specialization != AppConstants.generalPhysician;
 
         final tabCount = isSpecialist ? 4 : 3;
 

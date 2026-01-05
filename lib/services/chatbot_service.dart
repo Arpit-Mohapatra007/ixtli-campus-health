@@ -1,3 +1,4 @@
+import 'package:campus_health/utils/app_constants.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 
 class ChatBotService {
@@ -6,14 +7,7 @@ class ChatBotService {
   final String _systemInstruction = """
 You are Dr. AI, a helpful medical triage assistant for a college campus health app.
 Your goal is to listen to the student's symptoms and recommend ONE of the following specialists:
-- General Physician
-- Cardiologist
-- Dermatologist
-- Neurologist
-- Orthopedic
-- Dentist
-- Psychiatrist
-- ENT Specialist
+- ${AppConstants.specialists.join('\n- ')}
 
 Rules:
 1. If the symptoms are mild (fever, cold, headache, stomach ache), recommend "General Physician".
