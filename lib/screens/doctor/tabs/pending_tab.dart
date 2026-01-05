@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../providers/doctor_provider.dart';
 import '../../../providers/chat_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -12,7 +14,6 @@ class PendingRequestsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pendingAsync = ref.watch(pendingAppointmentsProvider);
-    
     final doctorProfile = ref.watch(currentUserProfileProvider).value;
     
     return pendingAsync.when(
@@ -22,95 +23,137 @@ class PendingRequestsTab extends ConsumerWidget {
         if (snapshot.docs.isEmpty) {
           return const Center(child: Text("No pending requests.", style: TextStyle(color: Colors.grey)));
         }
+
+        final Map<String, List<DocumentSnapshot>> groupedAppointments = {};
         
+        for (var doc in snapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final Timestamp ts = data['date'];
+          final date = ts.toDate();
+
+          final dateKey = DateFormat('EEEE, MMM d, yyyy').format(date);
+          
+          if (!groupedAppointments.containsKey(dateKey)) {
+            groupedAppointments[dateKey] = [];
+          }
+          groupedAppointments[dateKey]!.add(doc);
+        }
         return ListView.builder(
           padding: const EdgeInsets.all(12),
-          itemCount: snapshot.docs.length,
+          itemCount: groupedAppointments.length,
           itemBuilder: (ctx, i) {
-            final doc = snapshot.docs[i];
-            final data = doc.data() as Map<String, dynamic>;
+            final dateKey = groupedAppointments.keys.elementAt(i);
+            final requests = groupedAppointments[dateKey]!;
             
-            return Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        "${data['studentName']}", 
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+            final isToday = dateKey == DateFormat('EEEE, MMM d, yyyy').format(DateTime.now());
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 15, bottom: 8, left: 4),
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_month, size: 18, color: isToday ? Colors.teal : Colors.grey[700]),
+                      const SizedBox(width: 8),
+                      Text(
+                        isToday ? "TODAY ($dateKey)" : dateKey,
+                        style: TextStyle(
+                          fontSize: 14, 
+                          fontWeight: FontWeight.bold,
+                          color: isToday ? Colors.teal[800] : Colors.grey[800],
+                          letterSpacing: 0.5
+                        ),
                       ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    ],
+                  ),
+                ),
+                ...requests.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
                         children: [
-                          const SizedBox(height: 4),
-                          Text("Symptoms: ${data['reason'] ?? 'None'}"),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(color: Colors.orange[50], borderRadius: BorderRadius.circular(4)),
-                            child: Text(
-                              "Hostel: ${data['hostel'] ?? '?'}", 
-                              style: TextStyle(color: Colors.orange[800], fontSize: 12, fontWeight: FontWeight.bold)
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              "${data['studentName']}", 
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 4),
+                                Text("Symptoms: ${data['reason'] ?? 'None'}"),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(color: Colors.orange[50], borderRadius: BorderRadius.circular(4)),
+                                  child: Text(
+                                    "Hostel: ${data['hostel'] ?? '?'}", 
+                                    style: TextStyle(color: Colors.orange[800], fontSize: 12, fontWeight: FontWeight.bold)
+                                  ),
+                                ),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.message, color: Colors.blue),
+                              onPressed: () async {
+                                final doctor = ref.read(authServiceProvider).currentUser;
+                                if (doctor == null || doctorProfile == null) return;
+
+                                final chatId = await ref.read(chatServiceProvider).getChatRoomId(
+                                  studentId: data['studentId'],
+                                  studentName: data['studentName'],
+                                  doctorId: doctor.uid,
+                                  doctorName: doctorProfile.name,
+                                );
+
+                                if (context.mounted) {
+                                  context.push(
+                                    '/doctor/chat',
+                                    extra: {
+                                      'chatId': chatId,
+                                      'otherUserName': data['studentName'],
+                                    },
+                                  );
+                                }
+                              },
                             ),
                           ),
+                          const Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton.icon(
+                                onPressed: () => ref.read(doctorServiceProvider).rejectStudent(doc.id),
+                                icon: const Icon(Icons.close, size: 18),
+                                label: const Text("Reject"),
+                                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
+                                onPressed: () => ref.read(doctorServiceProvider).admitStudent(doc.id),
+                                icon: const Icon(Icons.check, size: 18),
+                                label: const Text("Admit"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.teal, 
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+                                ),
+                              ),
+                            ],
+                          )
                         ],
                       ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.message, color: Colors.blue),
-                        onPressed: () async {
-                          final doctor = ref.read(authServiceProvider).currentUser;
-                          if (doctor == null || doctorProfile == null) return;
-
-                          final chatId = await ref.read(chatServiceProvider).getChatRoomId(
-                            studentId: data['studentId'],
-                            studentName: data['studentName'],
-                            doctorId: doctor.uid,
-                            doctorName: doctorProfile.name,
-                          );
-
-                          if (context.mounted) {
-                            context.push(
-                              '/doctor/chat',
-                              extra: {
-                                'chatId': chatId,
-                                'otherUserName': data['studentName'],
-                              },
-                            );
-                          }
-                        },
-                      ),
                     ),
-                    const Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton.icon(
-                          onPressed: () => ref.read(doctorServiceProvider).rejectStudent(doc.id),
-                          icon: const Icon(Icons.close, size: 18),
-                          label: const Text("Reject"),
-                          style: TextButton.styleFrom(foregroundColor: Colors.red),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: () => ref.read(doctorServiceProvider).admitStudent(doc.id),
-                          icon: const Icon(Icons.check, size: 18),
-                          label: const Text("Admit"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal, 
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
+                  );
+                }),
+              ],
             );
           },
         );

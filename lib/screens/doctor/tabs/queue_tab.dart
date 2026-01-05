@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:campus_health/providers/doctor_provider.dart'; 
 import '../../../providers/auth_provider.dart' show authServiceProvider;
 import '../../../providers/chat_provider.dart' show chatServiceProvider;
@@ -31,104 +33,145 @@ class LiveQueueTab extends ConsumerWidget {
           );
         }
 
+        final Map<String, List<DocumentSnapshot>> groupedQueue = {};
+        for (var doc in snapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final Timestamp ts = data['date'];
+          final date = ts.toDate();
+          final dateKey = DateFormat('EEEE, MMM d, yyyy').format(date);
+          
+          if (!groupedQueue.containsKey(dateKey)) {
+            groupedQueue[dateKey] = [];
+          }
+          groupedQueue[dateKey]!.add(doc);
+        }
+
         return ListView.builder(
           padding: const EdgeInsets.all(12),
-          itemCount: snapshot.docs.length,
-          itemBuilder: (ctx, i) {
-            final doc = snapshot.docs[i];
-            final data = doc.data() as Map<String, dynamic>;
-            
-            final token = data['token_number'] ?? '?';
-            final name = data['studentName'] ?? 'Unknown';
-            
-            final isFirst = i == 0; 
+          itemCount: groupedQueue.length,
+          itemBuilder: (ctx, sectionIndex) {
+            final dateKey = groupedQueue.keys.elementAt(sectionIndex);
+            final appointments = groupedQueue[dateKey]!;
+            final isToday = dateKey == DateFormat('EEEE, MMM d, yyyy').format(DateTime.now());
 
-            return Card(
-              elevation: isFirst ? 4 : 1,
-              color: isFirst ? Colors.teal[50] : Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: isFirst ? const BorderSide(color: Colors.teal, width: 2) : BorderSide.none,
-              ),
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                leading: CircleAvatar(
-                  radius: 25,
-                  backgroundColor: isFirst ? Colors.teal : Colors.blueGrey[100],
-                  child: Text(
-                    "#$token", 
-                    style: TextStyle(
-                      color: isFirst ? Colors.white : Colors.black54, 
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18
-                    )
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  margin: const EdgeInsets.only(top: 10),
+                  child: Row(
+                    children: [
+                      Icon(Icons.event, color: isToday ? Colors.teal : Colors.grey),
+                      const SizedBox(width: 8),
+                      Text(
+                        isToday ? "TODAY'S QUEUE" : dateKey.toUpperCase(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isToday ? Colors.teal[800] : Colors.grey[700],
+                          fontSize: 14,
+                          letterSpacing: 1.0
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
-                subtitle: Text(
-                  isFirst ? "Now Serving..." : "Waiting in line", 
-                  style: TextStyle(color: isFirst ? Colors.teal[700] : Colors.grey)
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.message, color: Colors.blue),
-                      onPressed: () async {
-                        final doctor = ref.read(authServiceProvider).currentUser;
-                        if (doctor == null || doctorProfile == null) return;
+                ...appointments.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final token = data['token_number'] ?? '?';
+                  final name = data['studentName'] ?? 'Unknown';
+                  
+                  final isFirstOfToday = isToday && appointments.first.id == doc.id;
 
-                        final chatId = await ref.read(chatServiceProvider).getChatRoomId(
-                          studentId: data['studentId'],
-                          studentName: data['studentName'],
-                          doctorId: doctor.uid,
-                          doctorName: doctorProfile.name,
-                        );
-
-                        if (context.mounted) {
-                          context.push(
-                            '/doctor/chat',
-                            extra: {
-                              'chatId': chatId,
-                              'otherUserName': data['studentName'],
-                            },
-                          );
-                        }
-                      },
+                  return Card(
+                    elevation: isFirstOfToday ? 4 : 1,
+                    color: isFirstOfToday ? Colors.teal[50] : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: isFirstOfToday ? const BorderSide(color: Colors.teal, width: 2) : BorderSide.none,
                     ),
-                    
-                    const SizedBox(width: 8),
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      leading: CircleAvatar(
+                        radius: 25,
+                        backgroundColor: isFirstOfToday ? Colors.teal : Colors.blueGrey[100],
+                        child: Text(
+                          "#$token", 
+                          style: TextStyle(
+                            color: isFirstOfToday ? Colors.white : Colors.black54, 
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18
+                          )
+                        ),
+                      ),
+                      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+                      subtitle: Text(
+                        isFirstOfToday ? "Ready for treatment" : (isToday ? "Waiting in line" : "Approved for future"), 
+                        style: TextStyle(color: isFirstOfToday ? Colors.teal[700] : Colors.grey)
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.message, color: Colors.blue),
+                            onPressed: () async {
+                              final doctor = ref.read(authServiceProvider).currentUser;
+                              if (doctor == null || doctorProfile == null) return;
 
-                   ElevatedButton.icon(
-                      onPressed: () async {
-                        await ref.read(doctorServiceProvider).callPatient(doc.id);
-                        
-                        if (context.mounted) {
-                          context.push(
-                            '/doctor/consultation', 
-                            extra: {
-                              'appointmentId': doc.id,
-                              'appointmentData': data,
+                              final chatId = await ref.read(chatServiceProvider).getChatRoomId(
+                                studentId: data['studentId'],
+                                studentName: data['studentName'],
+                                doctorId: doctor.uid,
+                                doctorName: doctorProfile.name,
+                              );
+
+                              if (context.mounted) {
+                                context.push(
+                                  '/doctor/chat',
+                                  extra: {
+                                    'chatId': chatId,
+                                    'otherUserName': data['studentName'],
+                                  },
+                                );
+                              }
                             },
-                          );
+                          ),
                           
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Opening Consultation..."), duration: Duration(milliseconds: 500))
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.notifications_active, size: 18),
-                      label: const Text("Call In"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isFirst ? Colors.teal : Colors.grey,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          const SizedBox(width: 8),
+
+                         ElevatedButton.icon(
+                            onPressed: () async {
+                              await ref.read(doctorServiceProvider).callPatient(doc.id);
+                              
+                              if (context.mounted) {
+                                context.push(
+                                  '/doctor/consultation', 
+                                  extra: {
+                                    'appointmentId': doc.id,
+                                    'appointmentData': data,
+                                  },
+                                );
+                                
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Opening Consultation..."), duration: Duration(milliseconds: 500))
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.medical_services, size: 18),
+                            label: const Text("Treat"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isFirstOfToday ? Colors.teal : Colors.grey,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  );
+                }),
+              ],
             );
           },
         );

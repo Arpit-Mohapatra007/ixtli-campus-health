@@ -7,7 +7,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/sos_provider.dart';
 import '../../services/notification_service.dart';
-import '../../widgets/live_queue_card.dart';
 import 'all_doctors_screen.dart' show AllDoctorsScreen;
 import 'nearby_hospitals_screen.dart';
 import 'authorities_contact_screen.dart';
@@ -116,7 +115,6 @@ class StudentHome extends HookConsumerWidget {
           ),
           body: Column(
             children: [
-              const LiveQueueCard(),
               Expanded(
                 child: Center(
                   child: myEmergencyAsync.when(

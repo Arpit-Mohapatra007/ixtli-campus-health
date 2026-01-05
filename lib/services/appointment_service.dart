@@ -36,11 +36,17 @@ class AppointmentService {
   }
 
   Future<void> admitPatient(String appointmentId) async {
-    final now = DateTime.now();
-    final todayStr = "${now.year}-${now.month}-${now.day}"; 
-    final counterDocId = 'daily_counter_$todayStr';
-
     final appointmentRef = _firestore.collection('appointments').doc(appointmentId);
+    
+    final docSnap = await appointmentRef.get();
+    if (!docSnap.exists) throw Exception("Appointment not found");
+    
+    final data = docSnap.data() as Map<String, dynamic>;
+    final Timestamp dateTs = data['date'];
+    final DateTime date = dateTs.toDate();
+
+    final dateStr = "${date.year}-${date.month}-${date.day}"; 
+    final counterDocId = 'daily_counter_$dateStr';
     final counterRef = _firestore.collection('clinic_counters').doc(counterDocId);
 
     try {
@@ -54,7 +60,7 @@ class AppointmentService {
         } else {
           transaction.set(counterRef, {
             'last_token': 1, 
-            'date': Timestamp.fromDate(now)
+            'date': Timestamp.fromDate(date)
           });
         }
 
@@ -71,13 +77,17 @@ class AppointmentService {
 
   Stream<int> watchCurrentServing() {
     final now = DateTime.now();
-    final startOfDay = DateTime(now.year, now.month, now.day);
+
+    final startOfDay = DateTime.utc(now.year, now.month, now.day);
+    final endOfDay = DateTime.utc(now.year, now.month, now.day, 23, 59, 59);
 
     return _firestore
         .collection('appointments')
         .where('status', isEqualTo: 'approved')
-        .where('admitted_at', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-        .orderBy('admitted_at')
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+        .orderBy('date')
+        .orderBy('token_number')
         .limit(1)
         .snapshots()
         .map((snapshot) {

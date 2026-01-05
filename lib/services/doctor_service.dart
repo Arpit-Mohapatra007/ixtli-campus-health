@@ -12,38 +12,49 @@ class DoctorService {
   }
 
   Stream<QuerySnapshot> getApprovedQueue() {
+    final now = DateTime.now();
+
+    final startOfDay = DateTime.utc(now.year, now.month, now.day);
+
     return _db.collection('appointments')
         .where('status', isEqualTo: 'approved')
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .orderBy('date')         
         .orderBy('token_number') 
         .snapshots();
   }
 
   Future<void> admitStudent(String docId) async {
+    final docRef = _db.collection('appointments').doc(docId);
+
+    final docSnap = await docRef.get();
+    if (!docSnap.exists) return;
+    
+    final data = docSnap.data()!;
+    final Timestamp dateTs = data['date'];
+    final DateTime date = dateTs.toDate();
+
+    final dateStr = "${date.year}-${date.month}-${date.day}";
+    final counterRef = _db.collection('clinic_counters').doc('daily_counter_$dateStr');
+
     await _db.runTransaction((transaction) async {
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day);
-      final todayTimestamp = Timestamp.fromDate(todayStart);
-
-      final querySnapshot = await _db.collection('appointments')
-          .where('status', whereIn: ['approved', 'treating', 'completed'])
-          .where('date', isGreaterThanOrEqualTo: todayTimestamp)
-          .orderBy('date') 
-          .get(); 
-
+      final counterSnap = await transaction.get(counterRef);
       int nextToken = 1;
-      if (querySnapshot.docs.isNotEmpty) {
-         int maxToken = 0;
-        for (var doc in querySnapshot.docs) {
-          final t = doc.data()['token_number'] as int? ?? 0;
-          if (t > maxToken) maxToken = t;
-        }
-        nextToken = maxToken + 1;
+      
+      if (counterSnap.exists) {
+        nextToken = (counterSnap.get('last_token') as int) + 1;
+        transaction.update(counterRef, {'last_token': nextToken});
+      } else {
+        transaction.set(counterRef, {
+          'last_token': 1,
+          'date': Timestamp.fromDate(date)
+        });
       }
 
-      final docRef = _db.collection('appointments').doc(docId);
       transaction.update(docRef, {
         'status': 'approved',
         'token_number': nextToken,
+        'admitted_at': FieldValue.serverTimestamp(),
       });
     });
   }

@@ -4,12 +4,12 @@ import '../services/appointment_service.dart' show AppointmentService;
 
 final appointmentServiceProvider = Provider((ref) => AppointmentService());
 
-final currentServingProvider = StreamProvider<int>((ref) {
+final currentServingProvider = StreamProvider.autoDispose<int>((ref) {
   final service = ref.watch(appointmentServiceProvider);
   return service.watchCurrentServing();
 });
 
-final myActiveAppointmentProvider = StreamProvider<DocumentSnapshot?>((ref) {
+final myActiveAppointmentProvider = StreamProvider.autoDispose<DocumentSnapshot?>((ref) {
   final service = ref.watch(appointmentServiceProvider);
   return service.watchActiveAppointment();
 });
