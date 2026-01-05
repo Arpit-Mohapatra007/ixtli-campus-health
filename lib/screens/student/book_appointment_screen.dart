@@ -8,7 +8,12 @@ import '../../providers/content_provider.dart' show specialistScheduleProvider;
 import '../../providers/user_provider.dart';
 
 class BookAppointmentScreen extends ConsumerWidget {
-  const BookAppointmentScreen({super.key});
+  final String? initialCategory;
+  
+  const BookAppointmentScreen({
+    super.key, 
+    this.initialCategory
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,7 +29,10 @@ class BookAppointmentScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Error: $e")),
         data: (scheduleList) {
-          return _CalendarBody(scheduleList: scheduleList);
+          return _CalendarBody(
+            scheduleList: scheduleList,
+            initialCategory: initialCategory,
+          );
         }
       ),
     );
@@ -33,7 +41,12 @@ class BookAppointmentScreen extends ConsumerWidget {
 
 class _CalendarBody extends StatefulHookConsumerWidget {
   final List<Map<String, dynamic>> scheduleList;
-  const _CalendarBody({required this.scheduleList});
+  final String? initialCategory;
+
+  const _CalendarBody({
+    required this.scheduleList, 
+    this.initialCategory
+  });
 
   @override
   ConsumerState<_CalendarBody> createState() => _CalendarBodyState();
@@ -42,7 +55,13 @@ class _CalendarBody extends StatefulHookConsumerWidget {
 class _CalendarBodyState extends ConsumerState<_CalendarBody> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  String _selectedCategory = "General Physician";
+  late String _selectedCategory; 
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = widget.initialCategory ?? "General Physician";
+  }
 
   List<String> _getEventsForDay(DateTime day) {
     final cleanDay = DateTime(day.year, day.month, day.day);
@@ -117,7 +136,9 @@ class _CalendarBodyState extends ConsumerState<_CalendarBody> {
               setState(() {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
-                _selectedCategory = "General Physician";
+                if (!specialists.contains(_selectedCategory) && _selectedCategory != "General Physician") {
+                   _selectedCategory = "General Physician";
+                }
               });
             },
             eventLoader: _getEventsForDay,

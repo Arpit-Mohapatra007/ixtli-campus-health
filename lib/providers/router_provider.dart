@@ -11,6 +11,7 @@ import '../screens/driver/driver_home.dart' show DriverHome;
 import '../screens/student/book_appointment_screen.dart' show BookAppointmentScreen;
 import '../screens/student/medical_history_screen.dart' show MedicalHistoryScreen;
 import '../screens/student/student_home.dart' show StudentHome;
+import '../screens/student/ai_chat_screen.dart' show AIChatScreen;
 import 'auth_provider.dart';
 import 'user_provider.dart';
 
@@ -34,9 +35,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/student',
         builder: (context, state) => const StudentHome(),
         routes: [
-              GoRoute(
+          GoRoute(
             path: 'bookAppointment', 
-            builder: (context, state) => const BookAppointmentScreen()
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?; 
+              final preSelected = extra?['category'] as String?;
+              return BookAppointmentScreen(initialCategory: preSelected);
+            }
           ),
           GoRoute(
             path: 'chats', 
@@ -58,6 +63,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'history',
             builder: (context, state) => const MedicalHistoryScreen(),
+          ),
+          GoRoute(
+            path: 'aiChat',
+            builder: (context, state) => const AIChatScreen(),
           ),
         ]
       ),

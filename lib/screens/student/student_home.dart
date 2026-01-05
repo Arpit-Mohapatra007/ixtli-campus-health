@@ -114,6 +114,14 @@ class StudentHome extends HookConsumerWidget {
               ],
             ),
           ),
+          
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => context.push('/student/aiChat'),
+            backgroundColor: Colors.indigo,
+            icon: const Icon(Icons.auto_awesome, color: Colors.white),
+            label: const Text("Dr. AI", style: TextStyle(color: Colors.white)),
+          ),
+
           body: Column(
             children: [
               Expanded(
